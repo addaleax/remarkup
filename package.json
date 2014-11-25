@@ -1,0 +1,39 @@
+{
+	"private": true,
+	"name": "remarkup",
+	"main": "remarkup.js",
+	"version": "0.0.1",
+	"homepage": "https://github.com/addaleax/remarkup",
+	"author": {
+		"name": "Hauke Henningsen",
+		"email": "sqrt@entless.org"
+	},
+	"description": "HTML semantics and program logic separator",
+	"keywords": [
+		"html", "xml", "program logic", "translate", "translation",
+		"translating", "separation"
+	],
+	"licenses": [
+		{
+			"type": "LGPL-3.0+",
+			"url": "https://github.com/addaleax/remarkup/raw/master/LICENSE"
+		}
+	],
+	"bugs": {
+		"url": "https://github.com/addaleax/remarkup/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/addaleax/remarkup.git"
+	},
+	"dependencies": {
+		"munkres-js": "~1.1.2",
+		"jsdom": "~1.3.1"
+	},
+	"devDependencies": {
+		"mocha": "*"
+	},
+	"scripts": {
+		"test": "mocha test"
+	}
+}
