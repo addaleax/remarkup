@@ -7,6 +7,8 @@ remarkup
 
 Provides an API for separating program logic and semantics in HTML, e.g. for translation.
 
+Install via `npm install remarkup`.
+
 ## Example usage
 
 ```js
