@@ -26,7 +26,7 @@ function ReMarkup(opt) {
 	opt = opt || {};
 	
 	this.elementFilters = opt.elementFilters || 
-		[ReMarkup.defaultElementFilter(['id', 'translate-comment'])];
+		[ReMarkup.defaultElementFilter(['id', /^translate-.+$/])];
 	this.nonexistentChildDistance = opt.nonexistentChildDistance || 10;
 	this.rawElementMetric = opt.rawElementMetric ||
 		ReMarkup.defaultRawElementMetric;
@@ -59,7 +59,19 @@ ReMarkup.defaultElementFilter = function (preserveAttributes) {
 	return function (element) {
 		for (var i = 0; i < element.attributes.length; ) {
 			var attrName = element.attributes[i].name;
-			if (preserveAttributes.indexOf(attrName) == -1)
+			
+			var shouldBePreserved = false;
+			for (var j = 0; j < preserveAttributes.length; ++j) {
+				if ((preserveAttributes[j].test && 
+				     preserveAttributes[j].test(attrName)) ||
+				    attrName == preserveAttributes[j]) 
+				{
+					shouldBePreserved = true;
+					break;
+				}
+			}
+				
+			if (!shouldBePreserved)
 				element.removeAttribute(attrName);
 			else
 				++i;
