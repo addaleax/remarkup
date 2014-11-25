@@ -37,6 +37,9 @@ manipulation, whereas `reMarkup` re-added the information lost in the previous p
 
 There are some more options available; See the source for information on further parameters.
 
+Note that this module is under active development and a lot of default options may
+be subject to optimization.
+
 ## License
 
     The MIT License (MIT)
