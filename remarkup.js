@@ -28,6 +28,32 @@
 var jsdom = require('jsdom');
 var munkres = require('munkres-js');
 
+/**
+ * Provides methods for removing attributes from HTML fragments
+ * and re-adding them later, possibly on a modified
+ * (e.g. translated) HTML string.
+ * 
+ * @param {object} [opt] 
+ *       Options for matching and modifying the HTML elements
+ * @param {function[]} [opt.elementFilters]  
+ *       An array of callbacks for modifying the
+ *       HTML elements (passed as DOM nodes).
+ *       The default is a {@link ReMarkup.defaultElementFilter}
+ *       which preserves <code>id</code> and <code>translate-*</code>
+ *       attributes. (For {@link ReMarkup#unMarkup}).
+ * @param {number} [opt.nonexistentChildDistance]
+ *       The distance that will be used when an child
+ *       element is present in the original tree
+ *       but not the modified one or vice versa.
+ *       The default value is 10.
+ *       (For {@link ReMarkup#reMarkup}).
+ * @param {function} [opt.rawElementMetric]
+ *       A distance function for DOM HTML elements.
+ *       The default is {@link ReMarkup.defaultRawElementMetric}.
+ *
+ * @constructor ReMarkup
+ * @public
+ */
 function ReMarkup(opt) {
 	opt = opt || {};
 	
@@ -38,11 +64,29 @@ function ReMarkup(opt) {
 		ReMarkup.defaultRawElementMetric;
 }
 
+/**
+ * Applies the list of element filters to a single element.
+ * 
+ * @param {DOMElement} element  The target element.
+ * 
+ * @private
+ * @method ReMarkup#applyElementFilters
+ */
 ReMarkup.prototype.applyElementFilters = function (element) {
 	for (var i = 0; i < this.elementFilters.length; ++i)
 		this.elementFilters[i](element);
 };
 
+/**
+ * Recursively apply the element filters to an element and all its children.
+ * 
+ * @param {DOMElement} element  The target element.
+ * 
+ * @return {DOMElement}  The original target element.
+ * 
+ * @private
+ * @method ReMarkup#unMarkupRecurse
+ */
 ReMarkup.prototype.unMarkupRecurse = function (element) {
 	this.applyElementFilters(element);
 	
@@ -52,6 +96,16 @@ ReMarkup.prototype.unMarkupRecurse = function (element) {
 	return element;
 };
 
+/**
+ * Apply the element filters to an HTML fragment.
+ * 
+ * @param {string} original  The target HTML fragment.
+ * 
+ * @return {string}  A modified HTML fragment.
+ * 
+ * @public
+ * @method ReMarkup#unMarkup
+ */
 ReMarkup.prototype.unMarkup = function (original) {
 	var doc = jsdom.jsdom(original);
 	var body = doc.querySelector('body');
@@ -61,6 +115,19 @@ ReMarkup.prototype.unMarkup = function (original) {
 	return body.innerHTML;
 };
 
+/**
+ * Creates a default element filter that removes most attributes.
+ * 
+ * @param {string[]} preserveAttributes
+ *                     A list of strings and/or regex objects that
+ *                     element attributes are validated against.
+ * 
+ * @return {function}  An element filter that removes all attributes
+ *                     but those specified as preserved.
+ * 
+ * @public
+ * @function ReMarkup.defaultElementFilter
+ */
 ReMarkup.defaultElementFilter = function (preserveAttributes) {
 	return function (element) {
 		for (var i = 0; i < element.attributes.length; ) {
@@ -85,6 +152,15 @@ ReMarkup.defaultElementFilter = function (preserveAttributes) {
 	}
 };
 
+/**
+ * The default element metric.
+ * This compares elements and their position in the DOM tree
+ * and returns a number that indicates how un-similar the
+ * given elements are.
+ * 
+ * @public
+ * @function ReMarkup.defaultRawElementMetric
+ */
 ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
 	var distance = 0;
 	
@@ -109,6 +185,7 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
 	return distance;
 };
 
+// Return the index of an DOM node in a list of nodes
 function getElementIndex (list, element) {
 	for (var i = 0; i < list.length; ++i)
 		if (list[i].isSameNode(element))
@@ -117,11 +194,25 @@ function getElementIndex (list, element) {
 	return null;
 }
 
+// copy all DOM attributes from src to dst
 function copyAttributes (src, dst) {
 	for (var i = 0; i < src.attributes.length; ++i)
 		dst.setAttribute(src.attributes[i].name, src.attributes[i].value);
 }
 
+/**
+ * Re-adds attributes from an original HTML fragment
+ * to a, possibly modified, one.
+ * 
+ * @param {string} original  The original HTML fragment, including all attributes.
+ * @param {string} modified  The target HTML fragment.
+ * 
+ * @return {string}  An HTML fragment, with the attributes from the original string
+ *                   added to the modified one.
+ * 
+ * @public
+ * @method ReMarkup#reMarkup
+ */
 ReMarkup.prototype.reMarkup = function (original, modified) {
 	var self = this;
 	
