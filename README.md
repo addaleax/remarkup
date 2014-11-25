@@ -37,6 +37,12 @@ manipulation, whereas `reMarkup` re-added the information lost in the previous p
 
 There are some more options available; See the source for information on further parameters.
 
+To some degree, elements that are moved within the HTML tree or otherwise
+significantly modified can still be matched.
+It is strongly recommended that the essentially the same options are used for
+`unMarkup` and `reMarkup` so that the matching in `reMarkup` can compare the
+modified elements to what `unMarkup` would have produced.
+
 Note that this module is under active development and a lot of default options may
 be subject to optimization.
 

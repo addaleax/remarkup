@@ -229,6 +229,8 @@ ReMarkup.prototype.reMarkup = function (original, modified) {
 	for (var i = 0; i < origElements.length; ++i)
 		distanceMatrix[i] = [];
 	
+	// compute the distance of a original and a modified element
+	// and enter it into the distance matrix
 	function computeElementDistance (e1, e2) {
 		var e1i = getElementIndex(origElements, e1);
 		var e2i = getElementIndex(modElements,  e2);
@@ -240,6 +242,7 @@ ReMarkup.prototype.reMarkup = function (original, modified) {
 		var totalChildDistance = 0;
 		
 		if (e1.children.length > 0 && e2.children.length > 0) {
+			// compute all distances between the children of the elements...
 			var childMatrix = [];
 			
 			for (var i = 0; i < e1.children.length; ++i) {
@@ -249,6 +252,7 @@ ReMarkup.prototype.reMarkup = function (original, modified) {
 					childMatrix[i][j] = computeElementDistance(e1.children[i], e2.children[j]);
 			}
 			
+			// ... and find the minimal assignment between these
 			var m = new munkres.Munkres();
 			var indices = m.compute(childMatrix);
 		
@@ -258,8 +262,10 @@ ReMarkup.prototype.reMarkup = function (original, modified) {
 			}
 		}
 		
+		// add penalty for differing number of child elements
 		totalChildDistance += Math.abs(e1.children.length - e2.children.length) * self.nonexistentChildDistance;
 		
+		// compare to the element that unMarkup produces from e1
 		var e1_ = self.unMarkupRecurse(e1.cloneNode(true));
 		var rawElementDistance = self.rawElementMetric(
 		    e1_, e2,
