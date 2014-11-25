@@ -1,5 +1,4 @@
 {
-	"private": true,
 	"name": "remarkup",
 	"main": "remarkup.js",
 	"version": "0.0.1",

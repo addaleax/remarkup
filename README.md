@@ -5,7 +5,7 @@ remarkup
 [![Dependency Status](https://david-dm.org/addaleax/remarkup.svg)](https://david-dm.org/addaleax/remarkup)
 [![devDependency Status](https://david-dm.org/addaleax/remarkup/dev-status.svg)](https://david-dm.org/addaleax/remarkup#info=devDependencies)
 
-Provides an API for separating program logic and semantics HTML, e.g. for translation.
+Provides an API for separating program logic and semantics in HTML, e.g. for translation.
 
 ## Example usage
 
