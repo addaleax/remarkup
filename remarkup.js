@@ -58,7 +58,7 @@ function ReMarkup(opt) {
 	opt = opt || {};
 	
 	this.elementFilters = opt.elementFilters || 
-		[ReMarkup.defaultElementFilter(['id', /^translate-.+$/])];
+		[ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/])];
 	this.nonexistentChildDistance = opt.nonexistentChildDistance || 10;
 	this.rawElementMetric = opt.rawElementMetric ||
 		ReMarkup.defaultRawElementMetric;
@@ -158,27 +158,35 @@ ReMarkup.defaultElementFilter = function (preserveAttributes) {
  * and returns a number that indicates how un-similar the
  * given elements are.
  * 
+ * This returns a distance of 0 for elements which share the 
+ * same value for either of the <code>id</code>, 
+ * <code>translate-id</code> or <code>remarkup-id</code> attributes.
+ * 
  * @public
  * @function ReMarkup.defaultRawElementMetric
  */
 ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
-	var distance = 0;
+	// attributes that lead to definite matching of elements
+	var identAttr = ['id', 'translate-id', 'remarkup-id'];
 	
+	for (var i = 0; i < identAttr.length; ++i)
+		if (e1.hasAttribute(identAttr[i]) && e2.hasAttribute(identAttr[i]) &&
+		    e1.getAttribute(identAttr[i]) == e2.getAttribute(identAttr[i]))
+			return 0;
+	
+	var distance = 5; // minimum distance for elements with different IDs
 	if (e1.tagName != e2.tagName)
 		distance += 3;
-	
-	if (e1.id && e2.id && e1.id == e2.id)
-		return 0;
 	
 	for (var i = 0; i < e1.attributes.length; ++i) 
 		if (!e2.hasAttribute(e1.attributes[i].name) ||
 		     e2.getAttribute(e1.attributes[i].name) != e1.attributes[i].value)
-			distance += 0.25;
+			distance++;
 	
 	for (var i = 0; i < e2.attributes.length; ++i) 
 		if (!e1.hasAttribute(e2.attributes[i].name) ||
 		     e1.getAttribute(e2.attributes[i].name) != e2.attributes[i].value)
-			distance += 0.25;
+			distance++;
 	
 	distance += Math.abs(e1i - e2i);
 	

@@ -4,16 +4,15 @@ var assert = require('assert');
 
 var remarkup = require('../');
 
-// sample strings
-var bananasOriginal = '<span ng-show="true"><span>Bananas</span> are ' +
-	'<em id="emphasized" style="background-color: red">great</em>!' +
-	'</span>';
-
-var bananasGermanCorrectNoID = '<span><span>Bananen</span> sind <em>toll</em>!</span>';
-var bananasGermanCorrectID = '<span><em id="emphasized">Toll</em> sind <span>Bananen</span>!</span>';
-var bananasGermanIncorrect = '<span><span>Bananen</span> sind</span><em>toll!</em>';
-
 describe('ReMarkup', function() {
+	// generic sample strings
+	var bananasOriginal = '<span ng-show="true"><span>Bananas</span> are ' +
+		'<em id="emphasized" style="background-color: red">great</em>!' +
+		'</span>';
+	var bananasGermanCorrectNoID = '<span><span>Bananen</span> sind <em>toll</em>!</span>';
+	var bananasGermanCorrectID = '<span><em id="emphasized">Toll</em> sind <span>Bananen</span>!</span>';
+	var bananasGermanIncorrect = '<span><span>Bananen</span> sind</span><em>toll!</em>';
+
 	describe('#unMarkup', function() {
 		it('should strip most attributes by default', function() {
 			var rm = new remarkup.ReMarkup();
@@ -59,6 +58,30 @@ describe('ReMarkup', function() {
 			
 			assert.ok(remarkupped.match(/<span[^>]+ng-show/)); // span with ng-show
 			assert.ok(remarkupped.match(/<em[^>]+background-color/)); // em with style
+		});
+		
+		var yodaOriginal = 'Lost <span translate-role="object">a planet</span> <span translate-role="subject">Master Obi-Wan</span> has.';
+		var yodaModified = '<span translate-role="subject">Master Obi-Wan</span> has lost <span translate-role="object">a planet</span>.';
+
+		it('should help Master Yoda fix his sentences', function() {
+			var rm = new remarkup.ReMarkup();
+			
+			var remarkupped = rm.reMarkup(yodaOriginal, yodaModified);
+			
+			assert.ok(remarkupped.match(/subject[^<]+Obi-Wan/)); // Obi-Wan is subject
+			assert.ok(remarkupped.match(/object[^<]+planet/)); // a planet is the object
+		});
+
+		var translateIDOriginal = '<div><div translate-id="a" class="weird">Weird</div> <span class="nesting">nesting</span></div>';
+		var translateIDModified = '<div><div>Weird</div> <span translate-id="a">nesting</span></div>';
+		
+		it('should recognize the translate-id attribute', function() {
+			var rm = new remarkup.ReMarkup();
+			
+			var remarkupped = rm.reMarkup(translateIDOriginal, translateIDModified);
+			
+			assert.ok(remarkupped.match(/<div[^>]+nesting/)); // switched span, div
+			assert.ok(remarkupped.match(/<span[^>]+weird/));
 		});
 	});
 });
