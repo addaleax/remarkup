@@ -188,7 +188,9 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
 		     e1.getAttribute(e2.attributes[i].name) != e2.attributes[i].value)
 			distance++;
 	
-	distance += Math.abs(e1i - e2i);
+	var positionDistance = Math.abs(e1i - e2i);
+	if (positionDistance > 0)
+		distance += 2 * Math.log(positionDistance) + 1;
 	
 	return distance;
 };

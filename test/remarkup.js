@@ -83,5 +83,27 @@ describe('ReMarkup', function() {
 			assert.ok(remarkupped.match(/<div[^>]+nesting/)); // switched span, div
 			assert.ok(remarkupped.match(/<span[^>]+weird/));
 		});
+		
+		var longSentenceOriginal = '<p class="info">' +
+			'<span translate-id="existence-quantifier" class="testclass">There can be</span>' +
+			'<span>a lot of different solutions</span>' +
+			'<span>for <span class="missing">your</span> translation needs!</span>' +
+			'<span>Just ask for help!</span>' +
+			'</p>';
+		var longSentenceModified = '<p>' +
+			'<span>Fragen Sie einfach nach!</span>' +
+			'<span>Es kann</span>' +
+			'<span>viele verschiedene Lösungsansätze</span>' +
+			'<span>für Ihre Übersetzungsprobleme</span>' +
+			'<span translate-id="existence-quantifier">geben!</span>' +
+			'</p>';
+		
+		it('should match translate-id elements over longer distances within a tree', function() {
+			var rm = new remarkup.ReMarkup();
+			
+			var remarkupped = rm.reMarkup(longSentenceOriginal, longSentenceModified);
+			
+			assert.ok(remarkupped.match(/testclass[^<]+geben/)); // match existence quantifiers together
+		});
 	});
 });
