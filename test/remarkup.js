@@ -13,6 +13,11 @@ describe('ReMarkup', function() {
 	var bananasGermanCorrectID = '<span><em id="emphasized">Toll</em> sind <span>Bananen</span>!</span>';
 	var bananasGermanIncorrect = '<span><span>Bananen</span> sind</span><em>toll!</em>';
 
+	var imageOriginal = '<a href="#" title="This instructs you to click on the image">' + 
+		'Please click on this image: <img src="tux.png" alt="Image of Tux, a Penguin"></a>';
+	var imageModified = '<a href="#" title="Dies ist eine Anweisung, auf das Bild zu klicken">' + 
+		'Bitte klicke auf dieses Bild: <img src="tux.png" alt="Bild von Tux, einem Pinguin"></a>';
+
 	describe('#unMarkup', function() {
 		it('should strip most attributes by default', function() {
 			var rm = new remarkup.ReMarkup();
@@ -29,6 +34,14 @@ describe('ReMarkup', function() {
 			var modified = rm.unMarkup(bananasOriginal);
 			assert.notEqual(modified.replace(/<[^>]+>/g, '').indexOf('Bananas are'), -1);
 			assert.notEqual(modified.indexOf('great'), -1);
+		});
+		
+		it('should keep attributes like "alt" and "title"', function() {
+			var rm = new remarkup.ReMarkup();
+			
+			var modified = rm.unMarkup(imageOriginal);
+			assert.notEqual(modified.indexOf('instructs'), -1);
+			assert.notEqual(modified.indexOf('Penguin'), -1);
 		});
 	});
 	
@@ -87,7 +100,7 @@ describe('ReMarkup', function() {
 		var longSentenceOriginal = '<p class="info">' +
 			'<span translate-id="existence-quantifier" class="testclass">There can be</span>' +
 			'<span>a lot of different solutions</span>' +
-			'<span>for <span class="missing">your</span> translation needs!</span>' +
+			'<span translate-id="translation-needs">for your translation needs!</span>' +
 			'<span>Just ask for help!</span>' +
 			'</p>';
 		var longSentenceModified = '<p>' +
@@ -103,7 +116,17 @@ describe('ReMarkup', function() {
 			
 			var remarkupped = rm.reMarkup(longSentenceOriginal, longSentenceModified);
 			
-			assert.ok(remarkupped.match(/testclass[^<]+geben/)); // match existence quantifiers together
+			assert.ok( remarkupped.match(/testclass[^<]+geben/)); // match existence quantifiers together
+			assert.ok(!remarkupped.match(/missing/));
+		});
+		
+		it('should not override "alt" or "title" attributes', function() {
+			var rm = new remarkup.ReMarkup();
+			
+			var remarkupped = rm.reMarkup(imageOriginal, imageModified);
+			
+			assert.notEqual(remarkupped.indexOf('Anweisung'), -1);
+			assert.notEqual(remarkupped.indexOf('Pinguin'), -1);
 		});
 	});
 });

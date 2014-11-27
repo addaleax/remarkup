@@ -27,6 +27,8 @@
 
 var jsdom = require('jsdom');
 var munkres = require('munkres-js');
+var Levenshtein = require('levenshtein');
+var assert = require('assert');
 
 /**
  * Provides methods for removing attributes from HTML fragments
@@ -40,7 +42,9 @@ var munkres = require('munkres-js');
  *       HTML elements (passed as DOM nodes).
  *       The default is a {@link ReMarkup.defaultElementFilter}
  *       which preserves <code>id</code> and <code>translate-*</code>
- *       attributes. (For {@link ReMarkup#unMarkup}).
+ *       attributes, as well as all semantically relevant attributes.
+ *       (See {@link ReMarkup#semanticAttributes}).
+ *       (For {@link ReMarkup#unMarkup}).
  * @param {number} [opt.nonexistentChildDistance]
  *       The distance that will be used when an child
  *       element is present in the original tree
@@ -58,11 +62,24 @@ function ReMarkup(opt) {
 	opt = opt || {};
 	
 	this.elementFilters = opt.elementFilters || 
-		[ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/])];
+		[ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/].concat(this.semanticAttributes))];
 	this.nonexistentChildDistance = opt.nonexistentChildDistance || 10;
 	this.rawElementMetric = opt.rawElementMetric ||
 		ReMarkup.defaultRawElementMetric;
 }
+
+/**
+ * List of semantically relevant HTML attributes.
+ * These will be preserved by the default {@link ReMarkup#unMarkup}
+ * element filters and ignored by the default {@link ReMarkup#reMarkup}
+ * metric and its copy mechanism.
+ * 
+ * @type {string[]}
+ * @member ReMarkup#semanticAttributes
+ */
+ReMarkup.prototype.semanticAttributes = [
+	'alt', 'label', 'placeholder', 'title'
+];
 
 /**
  * Applies the list of element filters to a single element.
@@ -179,14 +196,24 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
 		distance += 3;
 	
 	for (var i = 0; i < e1.attributes.length; ++i) 
-		if (!e2.hasAttribute(e1.attributes[i].name) ||
-		     e2.getAttribute(e1.attributes[i].name) != e1.attributes[i].value)
+		if (!e2.hasAttribute(e1.attributes[i].name) && 
+		    this.semanticAttributes.indexOf(e1.attributes[i].name) == -1)
 			distance++;
 	
-	for (var i = 0; i < e2.attributes.length; ++i) 
-		if (!e1.hasAttribute(e2.attributes[i].name) ||
-		     e1.getAttribute(e2.attributes[i].name) != e2.attributes[i].value)
+	for (var i = 0; i < e2.attributes.length; ++i) {
+		if (this.semanticAttributes.indexOf(e2.attributes[i].name) != -1)
+			continue;
+		
+		if (!e1.hasAttribute(e2.attributes[i].name)) {
 			distance++;
+		} else {
+			var attrValue1 = e1.getAttribute(e2.attributes[i].name);
+			var attrValue2 = e2.attributes[i].value;
+			
+			if (attrValue1 != attrValue2)
+				distance += 2 * Math.log(new Levenshtein(attrValue1, attrValue2).distance);
+		}
+	}
 	
 	var positionDistance = Math.abs(e1i - e2i);
 	if (positionDistance > 0)
@@ -205,9 +232,12 @@ function getElementIndex (list, element) {
 }
 
 // copy all DOM attributes from src to dst
-function copyAttributes (src, dst) {
+function copyAttributes (src, dst, ignored) {
+	ignored = ignored || [];
+	
 	for (var i = 0; i < src.attributes.length; ++i)
-		dst.setAttribute(src.attributes[i].name, src.attributes[i].value);
+		if (ignored.indexOf(src.attributes[i].name) == -1)
+			dst.setAttribute(src.attributes[i].name, src.attributes[i].value);
 }
 
 /**
@@ -234,6 +264,9 @@ ReMarkup.prototype.reMarkup = function (original, modified) {
 	
 	var origElements = Array.prototype.slice.call(origBody.querySelectorAll('*'));
 	var modElements  = Array.prototype.slice.call(modBody .querySelectorAll('*'));
+	
+	if (origElements.length == 0 || modElements.length == 0)
+		return modified;
 	
 	var distanceMatrix = [];
 	for (var i = 0; i < origElements.length; ++i)
@@ -291,13 +324,13 @@ ReMarkup.prototype.reMarkup = function (original, modified) {
 	
 	var m = new munkres.Munkres();
 	var indices = m.compute(distanceMatrix);
-		
+	
 	for (var k = 0; k < indices.length; ++k) {
 		var ci = indices[k][0], cj = indices[k][1];
 		var e1 = origElements[ci];
 		var e2 = modElements [cj];
 		
-		copyAttributes(e1, e2);
+		copyAttributes(e1, e2, this.semanticAttributes);
 	}
 	
 	return modBody.innerHTML;
