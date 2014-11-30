@@ -27,7 +27,7 @@
 
 var jsdom = require('jsdom');
 var munkres = require('munkres-js');
-var Levenshtein = require('levenshtein');
+var levenshtein = require('fast-levenshtein');
 var assert = require('assert');
 
 /**
@@ -211,7 +211,7 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
 			var attrValue2 = e2.attributes[i].value;
 			
 			if (attrValue1 != attrValue2)
-				distance += 2 * Math.log(new Levenshtein(attrValue1, attrValue2).distance);
+				distance += 2 * Math.log(levenshtein.get(attrValue1, attrValue2));
 		}
 	}
 	
