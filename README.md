@@ -45,6 +45,13 @@ It is strongly recommended that the essentially the same options are used for
 `unMarkup` and `reMarkup` so that the matching in `reMarkup` can compare the
 modified elements to what `unMarkup` would have produced.
 
+With the default options, attributes that match `id`, `translate-*` or `remarkup-*`
+are kept by `unMarkup` (along with semantically relevant attributes like
+`placeholder` or `title`). When you consider it possible that, during human
+manipulation, the elements are re-ordered or otherwise drastically modified,
+you may want to use attributes like `id` or `translate-id` to faciliate
+distinguishing elements for `reMarkup`.
+
 Note that this module is under active development and a lot of default options may
 be subject to optimization.
 
