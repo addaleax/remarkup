@@ -1,9 +1,11 @@
 remarkup
 ===========
 
-[![Build Status](https://travis-ci.org/addaleax/remarkup.png)](https://travis-ci.org/addaleax/remarkup)
-[![Dependency Status](https://david-dm.org/addaleax/remarkup.svg)](https://david-dm.org/addaleax/remarkup)
-[![devDependency Status](https://david-dm.org/addaleax/remarkup/dev-status.svg)](https://david-dm.org/addaleax/remarkup#info=devDependencies)
+[![NPM Version](https://img.shields.io/npm/v/remarkup.svg?style=flat)](https://npmjs.org/package/remarkup)
+[![NPM Downloads](https://img.shields.io/npm/dm/remarkup.svg?style=flat)](https://npmjs.org/package/remarkup)
+[![Build Status](https://travis-ci.org/addaleax/remarkup.png?style=flat)](https://travis-ci.org/addaleax/remarkup)
+[![Dependency Status](https://david-dm.org/addaleax/remarkup.svg?style=flat)](https://david-dm.org/addaleax/remarkup)
+[![devDependency Status](https://david-dm.org/addaleax/remarkup/dev-status.svg?style=flat)](https://david-dm.org/addaleax/remarkup#info=devDependencies)
 
 Provides an API for separating program logic and semantics in HTML, e.g. for translation.
 

@@ -22,8 +22,8 @@
 	},
 	"dependencies": {
 		"munkres-js": "~1.1.2",
-		"jsdom": "~1.4.1",
-		"fast-levenshtein": "~1.0.5"
+		"jsdom": "~1.5.0",
+		"fast-levenshtein": "~1.0.6"
 	},
 	"devDependencies": {
 		"mocha": "*",
