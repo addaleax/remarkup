@@ -78,7 +78,7 @@ function ReMarkup(opt) {
  * @member ReMarkup#semanticAttributes
  */
 ReMarkup.prototype.semanticAttributes = [
-	'alt', 'label', 'placeholder', 'title'
+	'alt', 'label', 'placeholder', 'title', 'tooltip'
 ];
 
 /**
