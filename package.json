@@ -27,6 +27,8 @@
 	},
 	"devDependencies": {
 		"mocha": "*",
+		"istanbul": "*",
+		"coveralls": "*",
 		"jsdoc": "*"
 	},
 	"scripts": {
