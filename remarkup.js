@@ -222,15 +222,6 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
 	return distance;
 };
 
-// Return the index of an DOM node in a list of nodes
-function getElementIndex (list, element) {
-	for (var i = 0; i < list.length; ++i)
-		if (list[i].isSameNode(element))
-			return i;
-	
-	return null;
-}
-
 // copy all DOM attributes from src to dst
 function copyAttributes (src, dst, ignored) {
 	ignored = ignored || [];
@@ -275,8 +266,8 @@ ReMarkup.prototype.reMarkup = function (original, modified) {
 	// compute the distance of a original and a modified element
 	// and enter it into the distance matrix
 	function computeElementDistance (e1, e2) {
-		var e1i = getElementIndex(origElements, e1);
-		var e2i = getElementIndex(modElements,  e2);
+		var e1i = origElements.indexOf(e1);
+		var e2i = modElements .indexOf(e2);
 		
 		// do we already know the distance?
 		if (typeof distanceMatrix[e1i][e2i] != 'undefined')
