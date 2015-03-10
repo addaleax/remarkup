@@ -17,6 +17,9 @@ describe('ReMarkup', function() {
 		'Please click on this image: <img src="tux.png" alt="Image of Tux, a Penguin"></a>';
 	var imageModified = '<a href="#" title="Dies ist eine Anweisung, auf das Bild zu klicken">' + 
 		'Bitte klicke auf dieses Bild: <img src="tux.png" alt="Bild von Tux, einem Pinguin"></a>';
+	
+	var inputTestOriginal = '<input type="text" value="Removed text" />' +
+		'<input type="button" value="Still there" />';
 
 	describe('#unMarkup', function() {
 		it('should strip most attributes by default', function() {
@@ -42,6 +45,14 @@ describe('ReMarkup', function() {
 			var modified = rm.unMarkup(imageOriginal);
 			assert.notEqual(modified.indexOf('instructs'), -1);
 			assert.notEqual(modified.indexOf('Penguin'), -1);
+		});
+		
+		it('should keep the "value" attribute of input elements of certain types', function() {
+			var rm = new remarkup.ReMarkup();
+			
+			var modified = rm.unMarkup(inputTestOriginal);
+			assert.equal   (modified.indexOf('Removed text'), -1);
+			assert.notEqual(modified.indexOf('Still there'), -1);
 		});
 	});
 	

@@ -78,7 +78,10 @@ function ReMarkup(opt) {
  * @member ReMarkup#semanticAttributes
  */
 ReMarkup.prototype.semanticAttributes = [
-	'alt', 'label', 'placeholder', 'title', 'tooltip'
+	'alt', 'label', 'placeholder', 'title', 'tooltip',
+	function(name, element) {
+		return name == 'value' && ['button', 'submit'].indexOf(element.getAttribute('type')) != -1;
+	}
 ];
 
 /**
@@ -147,12 +150,16 @@ ReMarkup.prototype.unMarkup = function (original) {
  */
 ReMarkup.defaultElementFilter = function (preserveAttributes) {
 	return function (element) {
+		var originalElement = element.cloneNode(true);
+		
 		for (var i = 0; i < element.attributes.length; ) {
 			var attrName = element.attributes[i].name;
 			
 			var shouldBePreserved = false;
 			for (var j = 0; j < preserveAttributes.length; ++j) {
-				if ((preserveAttributes[j].test && 
+				if ((preserveAttributes[j].call &&
+				     preserveAttributes[j].call(element, attrName, originalElement, element)) ||
+				    (preserveAttributes[j].test && 
 				     preserveAttributes[j].test(attrName)) ||
 				    attrName == preserveAttributes[j]) 
 				{
