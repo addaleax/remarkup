@@ -4,6 +4,7 @@ remarkup
 [![NPM Version](https://img.shields.io/npm/v/remarkup.svg?style=flat)](https://npmjs.org/package/remarkup)
 [![NPM Downloads](https://img.shields.io/npm/dm/remarkup.svg?style=flat)](https://npmjs.org/package/remarkup)
 [![Build Status](https://travis-ci.org/addaleax/remarkup.png?style=flat)](https://travis-ci.org/addaleax/remarkup)
+[![Coverage Status](https://coveralls.io/repos/addaleax/remarkup/badge.svg?branch=master)](https://coveralls.io/r/addaleax/remarkup?branch=master)
 [![Dependency Status](https://david-dm.org/addaleax/remarkup.svg?style=flat)](https://david-dm.org/addaleax/remarkup)
 [![devDependency Status](https://david-dm.org/addaleax/remarkup/dev-status.svg?style=flat)](https://david-dm.org/addaleax/remarkup#info=devDependencies)
 
