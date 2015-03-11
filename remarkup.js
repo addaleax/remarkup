@@ -78,7 +78,7 @@ function ReMarkup(opt) {
  * @member ReMarkup#semanticAttributes
  */
 ReMarkup.prototype.semanticAttributes = [
-	'alt', 'label', 'placeholder', 'title', 'tooltip',
+	'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info',
 	function(name, element) {
 		return name == 'value' && ['button', 'submit'].indexOf(element.getAttribute('type')) != -1;
 	}
