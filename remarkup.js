@@ -45,6 +45,9 @@ var assert = require('assert');
  *       attributes, as well as all semantically relevant attributes.
  *       (See {@link ReMarkup#semanticAttributes}).
  *       (For {@link ReMarkup#unMarkup}).
+ * @param {function[]} [opt.additionalElementFilters]
+ *       Like <code>elementFilters</code>, but appended in addition
+ *       to the standard filters.
  * @param {number} [opt.nonexistentChildDistance]
  *       The distance that will be used when an child
  *       element is present in the original tree
@@ -61,12 +64,27 @@ var assert = require('assert');
 function ReMarkup(opt) {
 	opt = opt || {};
 	
-	this.elementFilters = opt.elementFilters || 
-		[ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/].concat(this.semanticAttributes))];
+	this.elementFilters = opt.elementFilters || [
+		ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/]
+			.concat(this.semanticAttributes))
+	].concat(opt.additionalElementFilters || []);
+	
 	this.nonexistentChildDistance = opt.nonexistentChildDistance || 10;
 	this.rawElementMetric = opt.rawElementMetric ||
 		ReMarkup.defaultRawElementMetric;
 }
+
+/**
+ * Add a filter to the elementFilters list.
+ * 
+ * @param {function} filter  The element filter.
+ * 
+ * @public
+ * @method ReMarkup#addElementFilter
+ */
+ReMarkup.prototype.addElementFilter = function(filter) {
+	this.elementFilters.push(filter);
+};
 
 /**
  * List of semantically relevant HTML attributes.
@@ -133,6 +151,41 @@ ReMarkup.prototype.unMarkup = function (original) {
 	this.unMarkupRecurse(body);
 	
 	return body.innerHTML;
+};
+
+/**
+ * An element filter for stripping whitespace after/before
+ * tags and newlines and collapse multiple spaces into a single one.
+ * 
+ * @param {DOMElement} element  The target element.
+ * 
+ * @return {DOMElement}  The original target element.
+ * 
+ * @public
+ * @function ReMarkup.stripSpaces
+ */
+ReMarkup.stripSpaces = function (element) {
+	for (var i = 0; i < element.childNodes.length; ++i) {
+		var node = element.childNodes[i];
+		if (node.nodeType != node.TEXT_NODE)
+			continue;
+		
+		// collapse multiple spaces
+		
+		/* only \t, \n, \r, space since other spaces (e.g. nbsp)
+		 * may carry some semantic meaning */
+		node.data = node.data
+			.replace(/[\t\n\r ]+/g, ' ');
+		
+		// remove starting/ending whitespace
+		if (i == 0)
+			node.data = node.data.replace(/^[\t\n\r ]+/g, '');
+		
+		if (i == element.childNodes.length - 1)
+			node.data = node.data.replace(/[\t\n\r ]+$/g, '');
+	}
+	
+	return element;
 };
 
 /**
