@@ -20,6 +20,10 @@ describe('ReMarkup', function() {
 	
 	var inputTestOriginal = '<input type="text" value="Removed text" />' +
 		'<input type="button" value="Still there" />';
+	
+	var whitespaceTestOriginal = '<a>  Some of the  whitespaces in this sentence should be <em>removed </em> \n' +
+		'\t\t\tin some cases</a>';
+	var whitespaceTestExpect = '<a>Some of the whitespaces in this sentence should be <em>removed</em> in some cases</a>';
 
 	describe('#unMarkup', function() {
 		it('should strip most attributes by default', function() {
@@ -53,6 +57,15 @@ describe('ReMarkup', function() {
 			var modified = rm.unMarkup(inputTestOriginal);
 			assert.equal   (modified.indexOf('Removed text'), -1);
 			assert.notEqual(modified.indexOf('Still there'), -1);
+		});
+		
+		it('should strip whitespace if asked to', function() {
+			var rm = new remarkup.ReMarkup({
+				additionalElementFilters: remarkup.ReMarkup.stripSpaces
+			});
+			
+			var modified = rm.unMarkup(whitespaceTestOriginal);
+			assert.equal(modified, whitespaceTestExpect);
 		});
 	});
 	
