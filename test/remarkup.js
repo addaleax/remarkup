@@ -12,7 +12,9 @@ describe('ReMarkup', function() {
 	var bananasGermanCorrectNoID = '<span><span>Bananen</span> sind <em>toll</em>!</span>';
 	var bananasGermanCorrectID = '<span><em id="emphasized">Toll</em> sind <span>Bananen</span>!</span>';
 	var bananasGermanIncorrect = '<span><span>Bananen</span> sind</span><em>toll!</em>';
-
+	
+	var tableRowOriginal = '<td>Column I</td><td>Column II</td>';
+	
 	var imageOriginal = '<a href="#" title="This instructs you to click on the image">' + 
 		'Please click on this image: <img src="tux.png" alt="Image of Tux, a Penguin"></a>';
 	var imageModified = '<a href="#" title="Dies ist eine Anweisung, auf das Bild zu klicken">' + 
@@ -66,6 +68,13 @@ describe('ReMarkup', function() {
 			
 			var modified = rm.unMarkup(whitespaceTestOriginal);
 			assert.equal(modified, whitespaceTestExpect);
+		});
+		
+		it('should keep data fields in <tr> tags', function() {
+			var rm = new remarkup.ReMarkup();
+			
+			var modified = rm.unMarkup(tableRowOriginal);
+			assert.notEqual(modified.indexOf('<td>'), -1);
 		});
 	});
 	
