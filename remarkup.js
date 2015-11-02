@@ -1,7 +1,7 @@
 /**
  * The MIT License (MIT)
  * 
- * Copyright (c) 2014  Hauke Henningsen <sqrt@entless.org>
+ * Copyright (c) 2014, 2015 Hauke Henningsen <sqrt@entless.org>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,7 +96,7 @@ ReMarkup.prototype.addElementFilter = function(filter) {
  * @member ReMarkup#semanticAttributes
  */
 ReMarkup.prototype.semanticAttributes = [
-	'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info',
+	'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info', 'popover'
 	function(name, element) {
 		return name == 'value' && ['button', 'submit'].indexOf(element.getAttribute('type')) != -1;
 	}
