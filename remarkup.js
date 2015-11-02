@@ -96,7 +96,7 @@ ReMarkup.prototype.addElementFilter = function(filter) {
  * @member ReMarkup#semanticAttributes
  */
 ReMarkup.prototype.semanticAttributes = [
-	'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info', 'popover'
+	'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info', 'popover',
 	function(name, element) {
 		return name == 'value' && ['button', 'submit'].indexOf(element.getAttribute('type')) != -1;
 	}
