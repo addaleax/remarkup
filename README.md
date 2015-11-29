@@ -62,7 +62,7 @@ be subject to optimization.
 
     The MIT License (MIT)
     
-    Copyright (c) 2014  Hauke Henningsen <sqrt@entless.org>
+    Copyright (c) 2014  Anna Henningsen <sqrt@entless.org>
     
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
