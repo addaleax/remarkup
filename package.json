@@ -1,7 +1,7 @@
 {
 	"name": "remarkup",
 	"main": "remarkup.js",
-	"version": "0.0.7",
+	"version": "0.1.0",
 	"homepage": "https://github.com/addaleax/remarkup",
 	"author": {
 		"name": "Anna Henningsen",
@@ -22,7 +22,7 @@
 	},
 	"dependencies": {
 		"munkres-js": "~1.1.2",
-		"jsdom": "~3.1.0",
+		"jsdom": "~7.0.2",
 		"fast-levenshtein": "~1.0.6"
 	},
 	"devDependencies": {
