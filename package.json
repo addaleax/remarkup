@@ -1,38 +1,38 @@
 {
-	"name": "remarkup",
-	"main": "remarkup.js",
-	"version": "0.1.0",
-	"homepage": "https://github.com/addaleax/remarkup",
-	"author": {
-		"name": "Anna Henningsen",
-		"email": "sqrt@entless.org"
-	},
-	"description": "HTML semantics and program logic separator",
-	"keywords": [
-		"html", "xml", "program logic", "translate", "translation",
-		"translating", "separation"
-	],
-	"license": "MIT",
-	"bugs": {
-		"url": "https://github.com/addaleax/remarkup/issues"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/addaleax/remarkup.git"
-	},
-	"dependencies": {
-		"munkres-js": "~1.1.2",
-		"jsdom": "~7.0.2",
-		"fast-levenshtein": "~1.0.6"
-	},
-	"devDependencies": {
-		"mocha": "*",
-		"istanbul": "*",
-		"coveralls": "*",
-		"jsdoc": "*"
-	},
-	"scripts": {
-		"test": "mocha test",
-		"docs": "jsdoc -d doc remarkup.js README.md"
-	}
+  "name": "remarkup",
+  "main": "remarkup.js",
+  "version": "0.1.0",
+  "homepage": "https://github.com/addaleax/remarkup",
+  "author": {
+    "name": "Anna Henningsen",
+    "email": "sqrt@entless.org"
+  },
+  "description": "HTML semantics and program logic separator",
+  "keywords": [
+    "html", "xml", "program logic", "translate", "translation",
+    "translating", "separation"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/addaleax/remarkup/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/addaleax/remarkup.git"
+  },
+  "dependencies": {
+    "munkres-js": "~1.1.2",
+    "jsdom": "~7.0.2",
+    "fast-levenshtein": "~1.0.6"
+  },
+  "devDependencies": {
+    "mocha": "*",
+    "istanbul": "*",
+    "coveralls": "*",
+    "jsdoc": "*"
+  },
+  "scripts": {
+    "test": "mocha test",
+    "docs": "jsdoc -d doc remarkup.js README.md"
+  }
 }
