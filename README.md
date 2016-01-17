@@ -15,7 +15,7 @@ Install via `npm install remarkup`.
 ## Example usage
 
 ```js
-var ReMarkup = require('remarkup').ReMarkup;
+var ReMarkup = require('remarkup');
 
 var rm = new ReMarkup();
 
