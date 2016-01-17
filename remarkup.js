@@ -1,7 +1,7 @@
 ;(function() {
 'use strict';
 
-const cheerio = require('cheerio');
+const $ = require('cheerio');
 const munkres = require('munkres-js');
 const levenshtein = require('fast-levenshtein');
 const assert = require('assert');
@@ -76,7 +76,7 @@ class ReMarkup {
     return [
       'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info', 'popover',
       (name, element) => {
-        return name == 'value' && ['button', 'submit'].indexOf(element.attribs['type']) != -1;
+        return name == 'value' && ['button', 'submit'].indexOf(element.attr('type')) != -1;
       }
     ];
   }
@@ -108,11 +108,9 @@ class ReMarkup {
   unMarkupRecurse(element) {
     this.applyElementFilters(element);
     
-    if (!element.children)
-      return;
-    
-    for (let i = 0; i < element.children.length; ++i)
-      this.unMarkupRecurse(element.children[i]);
+    element.children().each((i, child) => {
+      this.unMarkupRecurse($(child));
+    });
     
     return element;
   }
@@ -128,12 +126,12 @@ class ReMarkup {
    * @method ReMarkup#unMarkup
    */
   unMarkup(original) {
-    const doc = cheerio.load(original);
-    const root = doc.root()[0];
+    const doc = $.load(original);
+    const root = doc.root();
     
     this.unMarkupRecurse(root);
     
-    return doc.root().html();
+    return root.html();
   }
 
   /**
@@ -150,9 +148,10 @@ class ReMarkup {
    * @method ReMarkup#reMarkup
    */
   reMarkup(original, modified) {
-    const origDoc = cheerio.load(original).root(),
-          modDoc  = cheerio.load(modified).root();
+    const origDoc = $.load(original).root(),
+          modDoc  = $.load(modified).root();
     
+    // convert lists of all elements to arrays so that indices work
     const origElements = Array.prototype.slice.call(origDoc.find('*'));
     const modElements  = Array.prototype.slice.call(modDoc .find('*'));
     
@@ -165,12 +164,14 @@ class ReMarkup {
     
     // compute the distance of a original and a modified element
     // and enter it into the distance matrix
-    const computeElementDistance = (e1, e2) => {
-      const e1i = origElements.indexOf(e1);
-      const e2i = modElements .indexOf(e2);
+    const computeElementDistance = (e1unwrapped, e2unwrapped) => {
+      const e1i = origElements.indexOf(e1unwrapped);
+      const e2i = modElements .indexOf(e2unwrapped);
       
       assert.notStrictEqual(e1i, -1);
       assert.notStrictEqual(e2i, -1);
+      
+      const e1 = $(e1unwrapped), e2 = $(e2unwrapped);
       
       // do we already know the distance?
       if (typeof distanceMatrix[e1i][e2i] != 'undefined')
@@ -178,8 +179,8 @@ class ReMarkup {
       
       let totalChildDistance = 0;
       
-      let e1children = e1.children.filter(el => el.type === 'tag');
-      let e2children = e2.children.filter(el => el.type === 'tag');
+      let e1children = e1.children();
+      let e2children = e2.children();
       
       if (e1children.length > 0 && e2children.length > 0) {
         // compute all distances between the children of the elements...
@@ -206,15 +207,15 @@ class ReMarkup {
       }
       
       // add penalty for differing number of child elements
-      totalChildDistance += Math.abs(e1.children.length - e2.children.length) * this.nonexistentChildDistance;
+      totalChildDistance += Math.abs(e1children.length - e2children.length) * this.nonexistentChildDistance;
       
       // compare to the element that unMarkup produces from e1
-      const e1_ = this.unMarkupRecurse(cheerio(e1).clone()[0]);
+      const e1_ = this.unMarkupRecurse(e1.clone());
       const rawElementDistance = this.rawElementMetric(
           e1_, e2,
           e1i, e2i,
-          (e1.parent && e1.parent.children.length) || 0,
-          (e2.parent && e2.parent.children.length) || 0);
+          e1.parent().children().length,
+          e2.parent().children().length);
       
       return distanceMatrix[e1i][e2i] = totalChildDistance + rawElementDistance;
     }
@@ -242,14 +243,15 @@ class ReMarkup {
  * An element filter for stripping whitespace after/before
  * tags and newlines and collapse multiple spaces into a single one.
  * 
- * @param {DOMElement} element  The target element.
+ * @param {DOMElement} cElement  The target element.
  * 
  * @return {DOMElement}  The original target element.
  * 
  * @public
  * @function ReMarkup.stripSpaces
  */
-ReMarkup.stripSpaces = function (element) {
+ReMarkup.stripSpaces = function (cElement) {
+  const element = cElement[0];
   if (!element.children)
     return;
   
@@ -291,15 +293,9 @@ ReMarkup.stripSpaces = function (element) {
  */
 ReMarkup.defaultElementFilter = function (preserveAttributes) {
   return element => {
-    if (typeof element.attribs === 'undefined')
-      return;
-      
-    const originalElement = cheerio(element).clone()[0];
+    const originalElement = element.clone();
     
-    const attribs = Object.keys(element.attribs);
-    for (let i = 0; i < attribs.length; ++i) {
-      const attrName = attribs[i];
-      
+    Object.keys(element.attr() || {}).forEach(attrName => {
       let shouldBePreserved = false;
       for (let j = 0; j < preserveAttributes.length; ++j) {
         if ((preserveAttributes[j].call &&
@@ -314,8 +310,8 @@ ReMarkup.defaultElementFilter = function (preserveAttributes) {
       }
       
       if (!shouldBePreserved)
-        delete element.attribs[attrName];
-    }
+        element.removeAttr(attrName);
+    });
   }
 };
 
@@ -337,9 +333,9 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
   const identAttr = ['id', 'translate-id', 'remarkup-id'];
   
   for (let i = 0; i < identAttr.length; ++i) {
-    if (typeof e1.attribs[identAttr[i]] !== 'undefined' &&
-        typeof e2.attribs[identAttr[i]] !== 'undefined' &&
-        e1.attribs[identAttr[i]] === e2.attribs[identAttr[i]]) {
+    if (typeof e1.attr(identAttr[i]) !== 'undefined' &&
+        typeof e2.attr(identAttr[i]) !== 'undefined' &&
+        e1.attr(identAttr[i]) === e2.attr(identAttr[i])) {
       return 0;
     }
   }
@@ -349,8 +345,8 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
     distance += 3;
   }
   
-  const e1attribs = Object.keys(e1.attribs);
-  const e2attribs = Object.keys(e2.attribs);
+  const e1attribs = Object.keys(e1[0].attribs || e1[0].attributes);
+  const e2attribs = Object.keys(e2[0].attribs || e2[0].attributes);
   for (let i = 0; i < e1attribs.length; ++i) {
     if (e2attribs.indexOf(e1attribs[i]) === -1 &&
         this.semanticAttributes().indexOf(e1attribs[i]) === -1) {
@@ -366,8 +362,8 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
     if (e1attribs.indexOf(e2attribs[i]) === -1) {
       distance++;
     } else {
-      const attrValue1 = e1.attribs[e2attribs[i]];
-      const attrValue2 = e2.attribs[e2attribs[i]];
+      const attrValue1 = e1.attr(e2attribs[i]);
+      const attrValue2 = e2.attr(e2attribs[i]);
       
       if (attrValue1 !== attrValue2) {
         distance += 2 * Math.log(levenshtein.get(attrValue1, attrValue2));
@@ -388,7 +384,7 @@ module.exports = ReMarkup;
 function copyAttributes (src, dst, ignored) {
   ignored = ignored || [];
   
-  const srcAttribs = Object.keys(src.attribs);
+  const srcAttribs = Object.keys(src.attribs || src.attributes);
   for (let i = 0; i < srcAttribs.length; ++i) {
     if (ignored.indexOf(srcAttribs[i]) === -1) {
       dst.attribs[srcAttribs[i]] = src.attribs[srcAttribs[i]];
