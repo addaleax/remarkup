@@ -1,10 +1,10 @@
-(function() {
+;(function() {
 'use strict';
 
-var cheerio = require('cheerio');
-var munkres = require('munkres-js');
-var levenshtein = require('fast-levenshtein');
-var assert = require('assert');
+const cheerio = require('cheerio');
+const munkres = require('munkres-js');
+const levenshtein = require('fast-levenshtein');
+const assert = require('assert');
 
 /**
  * Provides methods for removing attributes from HTML fragments
@@ -37,100 +37,206 @@ var assert = require('assert');
  * @constructor ReMarkup
  * @public
  */
-function ReMarkup(opt) {
-  opt = opt || {};
-  
-  this.elementFilters = opt.elementFilters || [
-    ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/]
-      .concat(this.semanticAttributes))
-  ].concat(opt.additionalElementFilters || []);
-  
-  this.nonexistentChildDistance = opt.nonexistentChildDistance || 10;
-  this.rawElementMetric = opt.rawElementMetric ||
-    ReMarkup.defaultRawElementMetric;
-}
-
-/**
- * Add a filter to the elementFilters list.
- * 
- * @param {function} filter  The element filter.
- * 
- * @public
- * @method ReMarkup#addElementFilter
- */
-ReMarkup.prototype.addElementFilter = function(filter) {
-  this.elementFilters.push(filter);
-};
-
-/**
- * List of semantically relevant HTML attributes.
- * These will be preserved by the default {@link ReMarkup#unMarkup}
- * element filters and ignored by the default {@link ReMarkup#reMarkup}
- * metric and its copy mechanism.
- * 
- * @type {string[]}
- * @member ReMarkup#semanticAttributes
- */
-ReMarkup.prototype.semanticAttributes = [
-  'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info', 'popover',
-  function(name, element) {
-    return name == 'value' && ['button', 'submit'].indexOf(element.attribs['type']) != -1;
+class ReMarkup {
+  constructor(opt) {
+    opt = opt || {};
+    
+    this.elementFilters = opt.elementFilters || [
+      ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/]
+        .concat(this.semanticAttributes()))
+    ].concat(opt.additionalElementFilters || []);
+    
+    this.nonexistentChildDistance = opt.nonexistentChildDistance || 10;
+    this.rawElementMetric = opt.rawElementMetric ||
+      ReMarkup.defaultRawElementMetric;
   }
-];
 
-/**
- * Applies the list of element filters to a single element.
- * 
- * @param {DOMElement} element  The target element.
- * 
- * @private
- * @method ReMarkup#applyElementFilters
- */
-ReMarkup.prototype.applyElementFilters = function (element) {
-  for (var i = 0; i < this.elementFilters.length; ++i)
-    this.elementFilters[i](element);
-};
+  /**
+   * Add a filter to the elementFilters list.
+   * 
+   * @param {function} filter  The element filter.
+   * 
+   * @public
+   * @method ReMarkup#addElementFilter
+   */
+  addElementFilter(filter) {
+    this.elementFilters.push(filter);
+  }
 
-/**
- * Recursively apply the element filters to an element and all its children.
- * 
- * @param {DOMElement} element  The target element.
- * 
- * @return {DOMElement}  The original target element.
- * 
- * @private
- * @method ReMarkup#unMarkupRecurse
- */
-ReMarkup.prototype.unMarkupRecurse = function (element) {
-  this.applyElementFilters(element);
-  
-  if (!element.children)
-    return;
-  
-  for (var i = 0; i < element.children.length; ++i)
-    this.unMarkupRecurse(element.children[i]);
-  
-  return element;
-};
+  /**
+   * List of semantically relevant HTML attributes.
+   * These will be preserved by the default {@link ReMarkup#unMarkup}
+   * element filters and ignored by the default {@link ReMarkup#reMarkup}
+   * metric and its copy mechanism.
+   * 
+   * @private
+   * @method ReMarkup#semanticAttributes
+   */
+  semanticAttributes() {
+    return [
+      'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info', 'popover',
+      (name, element) => {
+        return name == 'value' && ['button', 'submit'].indexOf(element.attribs['type']) != -1;
+      }
+    ];
+  }
 
-/**
- * Apply the element filters to an HTML fragment.
- * 
- * @param {string} original  The target HTML fragment.
- * 
- * @return {string}  A modified HTML fragment.
- * 
- * @public
- * @method ReMarkup#unMarkup
- */
-ReMarkup.prototype.unMarkup = function (original) {
-  var doc = cheerio.load(original);
-  var root = doc.root()[0];
+  /**
+   * Applies the list of element filters to a single element.
+   * 
+   * @param {DOMElement} element  The target element.
+   * 
+   * @private
+   * @method ReMarkup#applyElementFilters
+   */
+  applyElementFilters(element) {
+    for (let i = 0; i < this.elementFilters.length; ++i) {
+      this.elementFilters[i](element);
+    }
+  }
   
-  this.unMarkupRecurse(root);
-  
-  return doc.root().html();
-};
+  /**
+   * Recursively apply the element filters to an element and all its children.
+   * 
+   * @param {DOMElement} element  The target element.
+   * 
+   * @return {DOMElement}  The original target element.
+   * 
+   * @private
+   * @method ReMarkup#unMarkupRecurse
+   */
+  unMarkupRecurse(element) {
+    this.applyElementFilters(element);
+    
+    if (!element.children)
+      return;
+    
+    for (let i = 0; i < element.children.length; ++i)
+      this.unMarkupRecurse(element.children[i]);
+    
+    return element;
+  }
+
+  /**
+   * Apply the element filters to an HTML fragment.
+   * 
+   * @param {string} original  The target HTML fragment.
+   * 
+   * @return {string}  A modified HTML fragment.
+   * 
+   * @public
+   * @method ReMarkup#unMarkup
+   */
+  unMarkup(original) {
+    const doc = cheerio.load(original);
+    const root = doc.root()[0];
+    
+    this.unMarkupRecurse(root);
+    
+    return doc.root().html();
+  }
+
+  /**
+   * Re-adds attributes from an original HTML fragment
+   * to a, possibly modified, one.
+   * 
+   * @param {string} original  The original HTML fragment, including all attributes.
+   * @param {string} modified  The target HTML fragment.
+   * 
+   * @return {string}  An HTML fragment, with the attributes from the original string
+   *                   added to the modified one.
+   * 
+   * @public
+   * @method ReMarkup#reMarkup
+   */
+  reMarkup(original, modified) {
+    const origDoc = cheerio.load(original).root(),
+          modDoc  = cheerio.load(modified).root();
+    
+    const origElements = Array.prototype.slice.call(origDoc.find('*'));
+    const modElements  = Array.prototype.slice.call(modDoc .find('*'));
+    
+    if (origElements.length == 0 || modElements.length == 0)
+      return modified;
+    
+    const distanceMatrix = [];
+    for (let i = 0; i < origElements.length; ++i)
+      distanceMatrix[i] = [];
+    
+    // compute the distance of a original and a modified element
+    // and enter it into the distance matrix
+    const computeElementDistance = (e1, e2) => {
+      const e1i = origElements.indexOf(e1);
+      const e2i = modElements .indexOf(e2);
+      
+      assert.notStrictEqual(e1i, -1);
+      assert.notStrictEqual(e2i, -1);
+      
+      // do we already know the distance?
+      if (typeof distanceMatrix[e1i][e2i] != 'undefined')
+        return distanceMatrix[e1i][e2i];
+      
+      let totalChildDistance = 0;
+      
+      let e1children = e1.children.filter(el => el.type === 'tag');
+      let e2children = e2.children.filter(el => el.type === 'tag');
+      
+      if (e1children.length > 0 && e2children.length > 0) {
+        // compute all distances between the children of the elements...
+        const childMatrix = [];
+        
+        for (let i = 0; i < e1children.length; ++i) {
+          childMatrix[i] = [];
+          
+          for (let j = 0; j < e2children.length; ++j) {
+            childMatrix[i][j] = computeElementDistance(e1children[i], e2children[j]);
+          }
+        }
+        
+        // ... and find the minimal assignment between these
+        const m = new munkres.Munkres();
+        const indices = m.compute(childMatrix);
+      
+        for (let k = 0; k < indices.length; ++k) {
+          const ci = indices[k][0],
+                cj = indices[k][1];
+          
+          totalChildDistance += childMatrix[ci][cj];
+        }
+      }
+      
+      // add penalty for differing number of child elements
+      totalChildDistance += Math.abs(e1.children.length - e2.children.length) * this.nonexistentChildDistance;
+      
+      // compare to the element that unMarkup produces from e1
+      const e1_ = this.unMarkupRecurse(cheerio(e1).clone()[0]);
+      const rawElementDistance = this.rawElementMetric(
+          e1_, e2,
+          e1i, e2i,
+          (e1.parent && e1.parent.children.length) || 0,
+          (e2.parent && e2.parent.children.length) || 0);
+      
+      return distanceMatrix[e1i][e2i] = totalChildDistance + rawElementDistance;
+    }
+    
+    for (let i = 0; i < origElements.length; ++i)
+      for (let j = 0; j < modElements.length; ++j)
+        computeElementDistance(origElements[i], modElements[j]);
+    
+    const m = new munkres.Munkres();
+    const indices = m.compute(distanceMatrix);
+    
+    for (let k = 0; k < indices.length; ++k) {
+      const ci = indices[k][0], cj = indices[k][1];
+      const e1 = origElements[ci];
+      const e2 = modElements [cj];
+      
+      copyAttributes(e1, e2, this.semanticAttributes());
+    }
+    
+    return modDoc.html();
+  }
+}
 
 /**
  * An element filter for stripping whitespace after/before
@@ -147,8 +253,8 @@ ReMarkup.stripSpaces = function (element) {
   if (!element.children)
     return;
   
-  for (var i = 0; i < element.children.length; ++i) {
-    var node = element.children[i];
+  for (let i = 0; i < element.children.length; ++i) {
+    const node = element.children[i];
     if (node.type !== 'text')
       continue;
     
@@ -184,18 +290,18 @@ ReMarkup.stripSpaces = function (element) {
  * @function ReMarkup.defaultElementFilter
  */
 ReMarkup.defaultElementFilter = function (preserveAttributes) {
-  return function (element) {
+  return element => {
     if (typeof element.attribs === 'undefined')
       return;
       
-    var originalElement = cheerio(element).clone()[0];
+    const originalElement = cheerio(element).clone()[0];
     
-    var attribs = Object.keys(element.attribs);
-    for (var i = 0; i < attribs.length; ++i) {
-      var attrName = attribs[i];
+    const attribs = Object.keys(element.attribs);
+    for (let i = 0; i < attribs.length; ++i) {
+      const attrName = attribs[i];
       
-      var shouldBePreserved = false;
-      for (var j = 0; j < preserveAttributes.length; ++j) {
+      let shouldBePreserved = false;
+      for (let j = 0; j < preserveAttributes.length; ++j) {
         if ((preserveAttributes[j].call &&
              preserveAttributes[j].call(element, attrName, originalElement, element)) ||
             (preserveAttributes[j].test && 
@@ -228,9 +334,9 @@ ReMarkup.defaultElementFilter = function (preserveAttributes) {
  */
 ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
   // attributes that lead to definite matching of elements
-  var identAttr = ['id', 'translate-id', 'remarkup-id'];
+  const identAttr = ['id', 'translate-id', 'remarkup-id'];
   
-  for (var i = 0; i < identAttr.length; ++i) {
+  for (let i = 0; i < identAttr.length; ++i) {
     if (typeof e1.attribs[identAttr[i]] !== 'undefined' &&
         typeof e2.attribs[identAttr[i]] !== 'undefined' &&
         e1.attribs[identAttr[i]] === e2.attribs[identAttr[i]]) {
@@ -238,30 +344,30 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
     }
   }
   
-  var distance = 5; // minimum distance for elements with different IDs
+  let distance = 5; // minimum distance for elements with different IDs
   if (e1.tagName !== e2.tagName) {
     distance += 3;
   }
   
-  var e1attribs = Object.keys(e1.attribs);
-  var e2attribs = Object.keys(e2.attribs);
-  for (var i = 0; i < e1attribs.length; ++i) {
+  const e1attribs = Object.keys(e1.attribs);
+  const e2attribs = Object.keys(e2.attribs);
+  for (let i = 0; i < e1attribs.length; ++i) {
     if (e2attribs.indexOf(e1attribs[i]) === -1 &&
-        this.semanticAttributes.indexOf(e1attribs[i]) === -1) {
+        this.semanticAttributes().indexOf(e1attribs[i]) === -1) {
       distance++;
     }
   }
   
-  for (var i = 0; i < e2attribs.length; ++i) {
-    if (this.semanticAttributes.indexOf(e2attribs[i]) !== -1) {
+  for (let i = 0; i < e2attribs.length; ++i) {
+    if (this.semanticAttributes().indexOf(e2attribs[i]) !== -1) {
       continue;
     }
     
     if (e1attribs.indexOf(e2attribs[i]) === -1) {
       distance++;
     } else {
-      var attrValue1 = e1.attribs[e2attribs[i]];
-      var attrValue2 = e2.attribs[e2attribs[i]];
+      const attrValue1 = e1.attribs[e2attribs[i]];
+      const attrValue2 = e2.attribs[e2attribs[i]];
       
       if (attrValue1 !== attrValue2) {
         distance += 2 * Math.log(levenshtein.get(attrValue1, attrValue2));
@@ -269,126 +375,25 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
     }
   }
   
-  var positionDistance = Math.abs(e1i - e2i);
+  const positionDistance = Math.abs(e1i - e2i);
   if (positionDistance > 0)
     distance += 2 * Math.log(positionDistance) + 1;
   
   return distance;
 };
 
+module.exports = ReMarkup;
+
 // copy all DOM attributes from src to dst
 function copyAttributes (src, dst, ignored) {
   ignored = ignored || [];
   
-  var srcAttribs = Object.keys(src.attribs);
-  for (var i = 0; i < srcAttribs.length; ++i) {
+  const srcAttribs = Object.keys(src.attribs);
+  for (let i = 0; i < srcAttribs.length; ++i) {
     if (ignored.indexOf(srcAttribs[i]) === -1) {
       dst.attribs[srcAttribs[i]] = src.attribs[srcAttribs[i]];
     }
   }
 }
-
-/**
- * Re-adds attributes from an original HTML fragment
- * to a, possibly modified, one.
- * 
- * @param {string} original  The original HTML fragment, including all attributes.
- * @param {string} modified  The target HTML fragment.
- * 
- * @return {string}  An HTML fragment, with the attributes from the original string
- *                   added to the modified one.
- * 
- * @public
- * @method ReMarkup#reMarkup
- */
-ReMarkup.prototype.reMarkup = function (original, modified) {
-  var self = this;
-  
-  var origDoc = cheerio.load(original).root(),
-      modDoc  = cheerio.load(modified).root();
-  
-  var origElements = Array.prototype.slice.call(origDoc.find('*'));
-  var modElements  = Array.prototype.slice.call(modDoc .find('*'));
-  
-  if (origElements.length == 0 || modElements.length == 0)
-    return modified;
-  
-  var distanceMatrix = [];
-  for (var i = 0; i < origElements.length; ++i)
-    distanceMatrix[i] = [];
-  
-  // compute the distance of a original and a modified element
-  // and enter it into the distance matrix
-  function computeElementDistance (e1, e2) {
-    var e1i = origElements.indexOf(e1);
-    var e2i = modElements .indexOf(e2);
-    
-    assert.notStrictEqual(e1i, -1);
-    assert.notStrictEqual(e2i, -1);
-    
-    // do we already know the distance?
-    if (typeof distanceMatrix[e1i][e2i] != 'undefined')
-      return distanceMatrix[e1i][e2i];
-    
-    var totalChildDistance = 0;
-    
-    let e1children = e1.children.filter(el => el.type === 'tag');
-    let e2children = e2.children.filter(el => el.type === 'tag');
-    
-    if (e1children.length > 0 && e2children.length > 0) {
-      // compute all distances between the children of the elements...
-      var childMatrix = [];
-      
-      for (var i = 0; i < e1children.length; ++i) {
-        childMatrix[i] = [];
-        
-        for (var j = 0; j < e2children.length; ++j) {
-          childMatrix[i][j] = computeElementDistance(e1children[i], e2children[j]);
-        }
-      }
-      
-      // ... and find the minimal assignment between these
-      var m = new munkres.Munkres();
-      var indices = m.compute(childMatrix);
-    
-      for (var k = 0; k < indices.length; ++k) {
-        var ci = indices[k][0], cj = indices[k][1];
-        totalChildDistance += childMatrix[ci][cj];
-      }
-    }
-    
-    // add penalty for differing number of child elements
-    totalChildDistance += Math.abs(e1.children.length - e2.children.length) * self.nonexistentChildDistance;
-    
-    // compare to the element that unMarkup produces from e1
-    var e1_ = self.unMarkupRecurse(cheerio(e1).clone()[0]);
-    var rawElementDistance = self.rawElementMetric(
-        e1_, e2,
-        e1i, e2i,
-        (e1.parent && e1.parent.children.length) || 0,
-        (e2.parent && e2.parent.children.length) || 0);
-    
-    return distanceMatrix[e1i][e2i] = totalChildDistance + rawElementDistance;
-  }
-  
-  for (var i = 0; i < origElements.length; ++i)
-    for (var j = 0; j < modElements.length; ++j)
-      computeElementDistance(origElements[i], modElements[j]);
-  
-  var m = new munkres.Munkres();
-  var indices = m.compute(distanceMatrix);
-  
-  for (var k = 0; k < indices.length; ++k) {
-    var ci = indices[k][0], cj = indices[k][1];
-    var e1 = origElements[ci];
-    var e2 = modElements [cj];
-    
-    copyAttributes(e1, e2, this.semanticAttributes);
-  }
-  
-  return modDoc.html();
-};
-
-exports.ReMarkup = ReMarkup;
 
 })();

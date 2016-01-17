@@ -2,7 +2,7 @@
 
 var assert = require('assert');
 
-var remarkup = require('../');
+var ReMarkup = require('../');
 
 describe('ReMarkup', function() {
   // generic sample strings
@@ -29,7 +29,7 @@ describe('ReMarkup', function() {
 
   describe('#unMarkup', function() {
     it('should strip most attributes by default', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var modified = rm.unMarkup(bananasOriginal);
       assert.equal(modified.indexOf('ng-show'), -1);
@@ -38,7 +38,7 @@ describe('ReMarkup', function() {
     });
     
     it('should not modify the text content', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var modified = rm.unMarkup(bananasOriginal);
       assert.notEqual(modified.replace(/<[^>]+>/g, '').indexOf('Bananas are'), -1);
@@ -46,7 +46,7 @@ describe('ReMarkup', function() {
     });
     
     it('should keep attributes like "alt" and "title"', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var modified = rm.unMarkup(imageOriginal);
       assert.notEqual(modified.indexOf('instructs'), -1);
@@ -54,7 +54,7 @@ describe('ReMarkup', function() {
     });
     
     it('should keep the "value" attribute of input elements of certain types', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var modified = rm.unMarkup(inputTestOriginal);
       assert.equal   (modified.indexOf('Removed text'), -1);
@@ -62,8 +62,8 @@ describe('ReMarkup', function() {
     });
     
     it('should strip whitespace if asked to', function() {
-      var rm = new remarkup.ReMarkup({
-        additionalElementFilters: remarkup.ReMarkup.stripSpaces
+      var rm = new ReMarkup({
+        additionalElementFilters: ReMarkup.stripSpaces
       });
       
       var modified = rm.unMarkup(whitespaceTestOriginal);
@@ -71,7 +71,7 @@ describe('ReMarkup', function() {
     });
     
     it('should keep data fields in implicit <tr> tags', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var modified = rm.unMarkup(tableRowOriginal);
       assert.notEqual(modified.indexOf('<td>'), -1);
@@ -80,7 +80,7 @@ describe('ReMarkup', function() {
   
   describe('#reMarkup', function() {
     it('should match elements correctly with identical tree structures', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var remarkupped = rm.reMarkup(bananasOriginal, bananasGermanCorrectNoID);
       
@@ -89,7 +89,7 @@ describe('ReMarkup', function() {
     });
     
     it('should match elements correctly with different tree structures with id attributes', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var remarkupped = rm.reMarkup(bananasOriginal, bananasGermanCorrectID);
       
@@ -98,7 +98,7 @@ describe('ReMarkup', function() {
     });
     
     it('should match elements correctly with different tree structures when possible', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var remarkupped = rm.reMarkup(bananasOriginal, bananasGermanIncorrect);
       
@@ -110,7 +110,7 @@ describe('ReMarkup', function() {
     var yodaModified = '<span translate-role="subject">Master Obi-Wan</span> has lost <span translate-role="object">a planet</span>.';
 
     it('should help Master Yoda fix his sentences', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var remarkupped = rm.reMarkup(yodaOriginal, yodaModified);
       
@@ -122,7 +122,7 @@ describe('ReMarkup', function() {
     var translateIDModified = '<div><div>Weird</div> <span translate-id="a">nesting</span></div>';
     
     it('should recognize the translate-id attribute', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var remarkupped = rm.reMarkup(translateIDOriginal, translateIDModified);
       
@@ -145,7 +145,7 @@ describe('ReMarkup', function() {
       '</p>';
     
     it('should match translate-id elements over longer distances within a tree', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var remarkupped = rm.reMarkup(longSentenceOriginal, longSentenceModified);
       
@@ -154,7 +154,7 @@ describe('ReMarkup', function() {
     });
     
     it('should not override "alt" or "title" attributes', function() {
-      var rm = new remarkup.ReMarkup();
+      var rm = new ReMarkup();
       
       var remarkupped = rm.reMarkup(imageOriginal, imageModified);
       
