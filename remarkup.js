@@ -252,8 +252,6 @@ class ReMarkup {
  */
 ReMarkup.stripSpaces = function (cElement) {
   const element = cElement[0];
-  if (!element.children)
-    return;
   
   for (let i = 0; i < element.children.length; ++i) {
     const node = element.children[i];
@@ -341,12 +339,14 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
   }
   
   let distance = 5; // minimum distance for elements with different IDs
-  if (e1.tagName !== e2.tagName) {
+  assert.ok(e1[0].tagName);
+  assert.ok(e2[0].tagName);
+  if (e1[0].tagName !== e2[0].tagName) {
     distance += 3;
   }
   
-  const e1attribs = Object.keys(e1[0].attribs || e1[0].attributes);
-  const e2attribs = Object.keys(e2[0].attribs || e2[0].attributes);
+  const e1attribs = Object.keys(e1.attr() || {});
+  const e2attribs = Object.keys(e2.attr() || {});
   for (let i = 0; i < e1attribs.length; ++i) {
     if (e2attribs.indexOf(e1attribs[i]) === -1 &&
         this.semanticAttributes().indexOf(e1attribs[i]) === -1) {
