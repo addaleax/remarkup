@@ -12,6 +12,10 @@ Provides an API for separating program logic and semantics in HTML, e.g. for tra
 
 Install via `npm install remarkup`.
 
+## For `.po` files
+
+There are utilities and a CLI available at [remarkup-po](https://github.com/addaleax/remarkup-po).
+
 ## Example usage
 
 ```js

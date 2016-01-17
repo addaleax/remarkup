@@ -1,7 +1,7 @@
 language: node_js
 node_js:
-  - "4.0"
-  - "5.0"
+  - "4"
+  - "5"
 script:
   - ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec
 after_success:
