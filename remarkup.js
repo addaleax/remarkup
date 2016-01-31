@@ -3,7 +3,7 @@
 
 const $ = require('cheerio');
 const munkres = require('munkres-js');
-const levenshtein = require('fast-levenshtein');
+const levenshtein = require('levenshtein-sse');
 const assert = require('assert');
 
 /**
@@ -366,7 +366,7 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
       const attrValue2 = e2.attr(e2attribs[i]);
       
       if (attrValue1 !== attrValue2) {
-        distance += 2 * Math.log(levenshtein.get(attrValue1, attrValue2));
+        distance += 2 * Math.log(levenshtein(attrValue1, attrValue2));
       }
     }
   }
