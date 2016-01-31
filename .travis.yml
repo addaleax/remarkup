@@ -11,6 +11,8 @@ addons:
       - ubuntu-toolchain-r-test
     packages:
       - g++-4.8
+before_install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; AR="gcc-ar-4.8"; RANLIB="gcc-ranlib-4.8"; NM="gcc-nm-4.8"; fi
 script:
   - ./node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -R spec
 after_success:
