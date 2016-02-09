@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "munkres-js": "^1.1.2",
-    "cheerio": "^0.19.0",
+    "cheerio": "^0.20.0",
     "levenshtein-sse": "^1.0.0"
   },
   "devDependencies": {
