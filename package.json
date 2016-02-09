@@ -1,7 +1,7 @@
 {
   "name": "remarkup",
   "main": "remarkup.js",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "homepage": "https://github.com/addaleax/remarkup",
   "author": {
     "name": "Anna Henningsen",
@@ -9,8 +9,13 @@
   },
   "description": "HTML semantics and program logic separator",
   "keywords": [
-    "html", "xml", "program logic", "translate", "translation",
-    "translating", "separation"
+    "html",
+    "xml",
+    "program logic",
+    "translate",
+    "translation",
+    "translating",
+    "separation"
   ],
   "license": "MIT",
   "bugs": {
