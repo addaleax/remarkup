@@ -7,6 +7,59 @@ const levenshtein = require('levenshtein-sse');
 const assert = require('assert');
 
 /**
+ * Internally used class for specifying sets of attributes.
+ * Wraps around a list, whose elements can be strings (e.g. "href"),
+ * regexes (/^data-/) or functions (name, element) => ...
+ */
+class AttributeSet {
+  constructor(initialElements) {
+    this.functions = [];
+    this.regexps = [];
+    this.strings = [];
+    
+    this.add(initialElements || []);
+  }
+  
+  add(otherElements) {
+    if (!Array.isArray(otherElements)) {
+      otherElements = [otherElements];
+    }
+    
+    otherElements.forEach(e => {
+      if (typeof e === 'string') {
+        return this.strings.push(e);
+      }
+      
+      if (typeof e === 'function') {
+        return this.functions.push(e);
+      }
+      
+      this.regexps.push(e);
+    });
+  }
+  
+  test(string, element, originalElement) {
+    if (this.strings.indexOf(string) !== -1) {
+      return true;
+    }
+    
+    for (let r of this.regexps) {
+      if (r.test(string)) {
+        return true;
+      }
+    }
+    
+    for (let fn of this.functions) {
+      if (fn.call(element, string, originalElement, element)) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+}
+
+/**
  * Provides methods for removing attributes from HTML fragments
  * and re-adding them later, possibly on a modified
  * (e.g. translated) HTML string.
@@ -41,9 +94,11 @@ class ReMarkup {
   constructor(opt) {
     opt = opt || {};
     
+    this.keepAttributes = new AttributeSet(['id', /^(remarkup|translate)-.+$/]);
+    this.keepAttributes.add(this.semanticAttributes());
+    
     this.elementFilters = opt.elementFilters || [
-      ReMarkup.defaultElementFilter(['id', /^(remarkup|translate)-.+$/]
-        .concat(this.semanticAttributes()))
+      ReMarkup.defaultElementFilter(this.keepAttributes)
     ].concat(opt.additionalElementFilters || []);
     
     this.nonexistentChildDistance = opt.nonexistentChildDistance || 10;
@@ -76,7 +131,8 @@ class ReMarkup {
     return [
       'alt', 'label', 'placeholder', 'title', 'tooltip', 'data-info', 'popover',
       (name, element) => {
-        return name == 'value' && ['button', 'submit'].indexOf(element.attr('type')) != -1;
+        return name == 'value' && element &&
+          ['button', 'submit'].indexOf(element.attr('type')) != -1;
       }
     ];
   }
@@ -232,7 +288,7 @@ class ReMarkup {
       const e1 = origElements[ci];
       const e2 = modElements [cj];
       
-      copyAttributes(e1, e2, this.semanticAttributes());
+      copyAttributes(e1, e2, this.keepAttributes);
     }
     
     return modDoc.html();
@@ -279,7 +335,7 @@ ReMarkup.stripSpaces = function (cElement) {
 /**
  * Creates a default element filter that removes most attributes.
  * 
- * @param {string[]} preserveAttributes
+ * @param {string[]} keepAttributes
  *                     A list of strings and/or regex objects that
  *                     element attributes are validated against.
  * 
@@ -289,28 +345,14 @@ ReMarkup.stripSpaces = function (cElement) {
  * @public
  * @function ReMarkup.defaultElementFilter
  */
-ReMarkup.defaultElementFilter = function (preserveAttributes) {
+ReMarkup.defaultElementFilter = function (keepAttributes) {
   return element => {
     const originalElement = element.clone();
     
-    Object.keys(element.attr() || {}).forEach(attrName => {
-      let shouldBePreserved = false;
-      for (let j = 0; j < preserveAttributes.length; ++j) {
-        if ((preserveAttributes[j].call &&
-             preserveAttributes[j].call(element, attrName, originalElement, element)) ||
-            (preserveAttributes[j].test && 
-             preserveAttributes[j].test(attrName)) ||
-            attrName == preserveAttributes[j]) 
-        {
-          shouldBePreserved = true;
-          break;
-        }
-      }
-      
-      if (!shouldBePreserved)
-        element.removeAttr(attrName);
-    });
-  }
+    Object.keys(element.attr() || {})
+      .filter(attrName => !keepAttributes.test(attrName, element, originalElement))
+      .forEach(attrName => element.removeAttr(attrName));
+  };
 };
 
 /**
@@ -349,13 +391,13 @@ ReMarkup.defaultRawElementMetric = function (e1, e2, e1i, e2i, e1pl, e2pl) {
   const e2attribs = Object.keys(e2.attr() || {});
   for (let i = 0; i < e1attribs.length; ++i) {
     if (e2attribs.indexOf(e1attribs[i]) === -1 &&
-        this.semanticAttributes().indexOf(e1attribs[i]) === -1) {
+        !this.keepAttributes.test(e1attribs[i])) {
       distance++;
     }
   }
   
   for (let i = 0; i < e2attribs.length; ++i) {
-    if (this.semanticAttributes().indexOf(e2attribs[i]) !== -1) {
+    if (this.keepAttributes.test(e2attribs[i])) {
       continue;
     }
     
@@ -386,7 +428,7 @@ function copyAttributes (src, dst, ignored) {
   
   const srcAttribs = Object.keys(src.attribs || src.attributes);
   for (let i = 0; i < srcAttribs.length; ++i) {
-    if (ignored.indexOf(srcAttribs[i]) === -1) {
+    if (!ignored.test(srcAttribs[i], $(dst), $(src))) {
       dst.attribs[srcAttribs[i]] = src.attribs[srcAttribs[i]];
     }
   }
