@@ -22,6 +22,8 @@ describe('ReMarkup', function() {
   
   const inputTestOriginal = '<input type="text" value="Removed text" />' +
     '<input type="button" value="Still there" />';
+  const inputTestModified = '<input type="text" value="Text field text changed" />' +
+    '<input type="button" value="Button text changed" />';
   
   const whitespaceTestOriginal = '<a>  Some of the  whitespaces in this sentence should be <em>removed </em> \n' +
     '\t\t\tin some cases</a>';
@@ -160,6 +162,17 @@ describe('ReMarkup', function() {
       
       assert.notEqual(remarkupped.indexOf('Anweisung'), -1);
       assert.notEqual(remarkupped.indexOf('Pinguin'), -1);
+    });
+    
+    it('should modify the "value" attribute of input elements of certain types', function() {
+      const rm = new ReMarkup();
+      
+      const remarkupped = rm.reMarkup(inputTestOriginal, inputTestModified);
+      
+      assert.notEqual(remarkupped.indexOf('Removed text'), -1);
+      assert.equal   (remarkupped.indexOf('Still there'), -1);
+      assert.equal   (remarkupped.indexOf('Text field text changed'), -1);
+      assert.notEqual(remarkupped.indexOf('Button text changed'), -1);
     });
   });
 });
